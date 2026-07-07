@@ -1,7 +1,7 @@
-[[link]]
-filepath = "./files/toml/test1"
-linkpath = "./links/toml"
+[[links]]
+filepath = "./files/test1"
+linkpath = "./links/toml/"
 
-[[link]]
-filepath = "./files/toml/test2/"
-linkpath = "./links/toml"
+[[links]]
+filepath = "./files/test2/"
+linkpath = "./links/toml/"

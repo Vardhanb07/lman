@@ -1,5 +1,5 @@
 links:
-  - filepath: ./files/yaml/test1
+  - filepath: ./files/test1
     linkpath: ./links/yaml/
-  - filepath: ./files/yaml/test2/
-    linkpath: ./links/yaml
+  - filepath: ./files/test2/
+    linkpath: ./links/yaml/

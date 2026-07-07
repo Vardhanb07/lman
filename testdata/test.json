@@ -1,11 +1,11 @@
 {
   "links": [
     {
-      "filepath": "./files/json/test1",
+      "filepath": "./files/test1",
       "linkpath": "./links/json/"
     },
     {
-      "filepath": "./files/json/test2/",
+      "filepath": "./files/test2/",
       "linkpath": "./links/json/"
     }
   ]
