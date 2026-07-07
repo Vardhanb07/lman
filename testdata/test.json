@@ -1,0 +1,10 @@
+[
+  {
+    "file": "./files/json/test1",
+    "linkTo": "./links/json/"
+  },
+  {
+    "file": "./files/json/test2",
+    "linkTo": "./links/json"
+  }
+]
