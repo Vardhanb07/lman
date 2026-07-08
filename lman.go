@@ -3,16 +3,21 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/urfave/cli/v3"
 )
 
-func run() error {
-	cmd := &cli.Command{
-		Name:    "lman",
-		Usage:   "manage farms of symbolic links",
-		Version: "v0.0.1",
+func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
+	return &cli.Command{
+		Name:                   "lman",
+		Usage:                  "manage farms of symbolic links",
+		Version:                "v0.0.1",
+		Writer:                 stdout,
+		ErrWriter:              stderr,
+		Reader:                 stdin,
+		UseShortOptionHandling: true,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "config",
@@ -60,15 +65,27 @@ func run() error {
 				},
 			},
 		},
-		Action: func(ctx context.Context, c *cli.Command) error {
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			paths := cmd.StringArgs("paths")
+			if len(paths) >= 2 {
+				files := paths[:len(paths)-1]
+				linkfile := paths[len(paths)-1]
+				for _, file := range files {
+					if err := link(file, linkfile); err != nil {
+						return err
+					}
+				}
+				fmt.Fprintln(cmd.Writer, "links created")
+			}
 			return nil
 		},
 	}
-	return cmd.Run(context.Background(), os.Args)
 }
 
 func main() {
-	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	lman := NewLman(os.Stdout, os.Stderr, os.Stdin)
+	if err := lman.Run(context.Background(), os.Args); err != nil {
+		fmt.Fprintf(os.Stderr, "lman: %v\n", err)
+		os.Exit(1)
 	}
 }
