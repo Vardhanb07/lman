@@ -2,8 +2,11 @@ package main
 
 import (
 	"errors"
+	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/mitchellh/go-homedir"
 )
 
 var (
@@ -14,12 +17,17 @@ var (
 )
 
 func link(path, linkpath string) error {
-	absPath, err := filepath.Abs(path)
+	absPath, err := homedir.Expand(path)
+	if err != nil {
+		return err
+	}
+	absLinkPath, err := homedir.Expand(linkpath)
 	if err != nil {
 		return err
 	}
 	_, err = os.Stat(absPath)
 	if err != nil {
+		log.Print(err)
 		if errors.Is(err, os.ErrNotExist) {
 			return ErrLinkFileNotFound
 		}
@@ -28,7 +36,7 @@ func link(path, linkpath string) error {
 		}
 		return err
 	}
-	if err := os.Symlink(absPath, filepath.Join(linkpath, filepath.Base(absPath))); err != nil {
+	if err := os.Symlink(absPath, filepath.Join(absLinkPath, filepath.Base(absPath))); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return ErrLinkNotFound
 		}
