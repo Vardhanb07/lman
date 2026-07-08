@@ -56,26 +56,26 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 		},
 		Commands: []*cli.Command{
 			{
-				Name:    "sync",
-				Aliases: []string{"s"},
-				Usage:   "Get all links in current folder from config",
-				Action: func(ctx context.Context, c *cli.Command) error {
-					return nil
-				},
-			},
-			{
 				Name:    "remove",
 				Aliases: []string{"r"},
-				Usage:   "unlink all links in current folder",
-				Action: func(ctx context.Context, c *cli.Command) error {
-					return nil
-				},
-			},
-			{
-				Name:    "delete",
-				Aliases: []string{"d"},
-				Usage:   "unlink and delete all links in current folder",
-				Action: func(ctx context.Context, c *cli.Command) error {
+				Usage:   "unlink and delete all links in current folder. Preserves only default config files",
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					verbose := cmd.Bool("verbose")
+					dir, err := os.ReadDir(".")
+					if err != nil {
+						return err
+					}
+					cfgFiles := defaultConfigFiles()
+					for _, file := range dir {
+						if !slices.Contains(cfgFiles, file.Name()) {
+							if verbose {
+								fmt.Fprintf(cmd.Writer, "deleting %v", file.Name())
+							}
+							if err := os.RemoveAll(filepath.Join(".", file.Name())); err != nil {
+								return err
+							}
+						}
+					}
 					return nil
 				},
 			},
