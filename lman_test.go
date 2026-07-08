@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	main "github.com/Vardhanb07/lman"
 	"github.com/stretchr/testify/assert"
-	main "github.com/vardhanb07/lman"
 )
 
 var (
