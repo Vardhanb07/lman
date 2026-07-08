@@ -2,12 +2,27 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"slices"
 
 	"github.com/urfave/cli/v3"
 )
+
+var (
+	ErrUnsupportedConfigFileFormat = errors.New("config file format not supported")
+)
+
+func defaultConfigFiles() []string {
+	return []string{"lman.config.toml", "lman.config.yaml", "lman.config.json"}
+}
+
+func defaultConfigExts() []string {
+	return []string{".toml", ".yaml", ".json"}
+}
 
 func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 	return &cli.Command{
@@ -22,7 +37,6 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 			&cli.StringFlag{
 				Name:    "config",
 				Aliases: []string{"c"},
-				Value:   "./config.toml",
 				Usage:   "Set the config file path",
 			},
 			&cli.BoolFlag{
@@ -67,15 +81,66 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			paths := cmd.StringArgs("paths")
-			if len(paths) >= 2 {
+			verbose := cmd.Bool("verbose")
+			cfgFile := cmd.String("config")
+			switch {
+			case len(paths) >= 2:
 				files := paths[:len(paths)-1]
 				linkfile := paths[len(paths)-1]
 				for _, file := range files {
+					if verbose {
+						fmt.Fprintf(cmd.Writer, "creating link of %v in %v\n", file, linkfile)
+					}
 					if err := link(file, linkfile); err != nil {
 						return err
 					}
 				}
 				fmt.Fprintln(cmd.Writer, "links created")
+			case cfgFile != "":
+				exts := defaultConfigExts()
+				if !slices.Contains(exts, filepath.Ext(cfgFile)) {
+					return ErrUnsupportedConfigFileFormat
+				}
+				if verbose {
+					fmt.Fprintf(cmd.Writer, "reading config file\n")
+				}
+				cfg, err := readConfig(cfgFile)
+				if err != nil {
+					return err
+				}
+				for _, links := range cfg.Links {
+					if verbose {
+						fmt.Fprintf(cmd.Writer, "creating link of %v in %v\n", links.Filepath, links.Linkpath)
+					}
+					if err := link(links.Filepath, links.Linkpath); err != nil {
+						return err
+					}
+				}
+			default:
+				cfgFiles := defaultConfigFiles()
+				wd, err := os.Getwd()
+				if err != nil {
+					return err
+				}
+				var cfgFile string
+				for _, file := range cfgFiles {
+					fstat, err := os.Stat(filepath.Join(wd, file))
+					if os.IsExist(err) {
+						cfgFile = fstat.Name()
+						break
+					} else if !os.IsNotExist(err) {
+						return err
+					}
+				}
+				cfg, err := readConfig(cfgFile)
+				for _, links := range cfg.Links {
+					if verbose {
+						fmt.Fprintf(cmd.Writer, "creating link of %v in %v\n", links.Filepath, links.Linkpath)
+					}
+					if err := link(links.Filepath, links.Linkpath); err != nil {
+						return err
+					}
+				}
 			}
 			return nil
 		},
