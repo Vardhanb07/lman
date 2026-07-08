@@ -14,6 +14,7 @@ import (
 
 var (
 	ErrUnsupportedConfigFileFormat = errors.New("config file format not supported")
+	ErrDefaultConfigFileNotFound   = errors.New("default config file not found, default files are 'lman.config.toml', 'lman.config.yaml', 'lman.config.json'. If you have custom config file provide it with --config, -c flag")
 )
 
 func defaultConfigFiles() []string {
@@ -116,6 +117,7 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 						return err
 					}
 				}
+				fmt.Fprintln(cmd.Writer, "links created")
 			default:
 				cfgFiles := defaultConfigFiles()
 				wd, err := os.Getwd()
@@ -125,12 +127,16 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 				var cfgFile string
 				for _, file := range cfgFiles {
 					fstat, err := os.Stat(filepath.Join(wd, file))
-					if os.IsExist(err) {
-						cfgFile = fstat.Name()
-						break
-					} else if !os.IsNotExist(err) {
+					if os.IsNotExist(err) {
+						continue
+					} else if err != nil {
 						return err
 					}
+					cfgFile = fstat.Name()
+					break
+				}
+				if cfgFile == "" {
+					return ErrDefaultConfigFileNotFound
 				}
 				cfg, err := readConfig(cfgFile)
 				for _, links := range cfg.Links {
@@ -141,6 +147,7 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 						return err
 					}
 				}
+				fmt.Fprintln(cmd.Writer, "links created")
 			}
 			return nil
 		},

@@ -1,0 +1,7 @@
+[[links]]
+filepath = "./files/test1"
+linkpath = "./links/"
+
+[[links]]
+filepath = "./files/test2/"
+linkpath = "./links/"

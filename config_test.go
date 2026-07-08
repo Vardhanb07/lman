@@ -9,11 +9,9 @@ import (
 )
 
 var (
-	test1filepath = "./files/test1"
-	test2filepath = "./files/test2/"
-	jsonlinkpath  = "./links/json/"
-	yamllinkpath  = "./links/yaml/"
-	tomllinkpath  = "./links/toml/"
+	test1filepath = "./testdata/files/test1"
+	test2filepath = "./testdata/files/test2/"
+	linkpath      = "./testdata/links/"
 )
 
 func TestReadConfig_JSON(t *testing.T) {
@@ -24,8 +22,8 @@ func TestReadConfig_JSON(t *testing.T) {
 	}
 	assert.Equal(t, cfg.Links[0].Filepath, test1filepath)
 	assert.Equal(t, cfg.Links[1].Filepath, test2filepath)
-	assert.Equal(t, cfg.Links[0].Linkpath, jsonlinkpath)
-	assert.Equal(t, cfg.Links[1].Linkpath, jsonlinkpath)
+	assert.Equal(t, cfg.Links[0].Linkpath, linkpath)
+	assert.Equal(t, cfg.Links[1].Linkpath, linkpath)
 }
 
 func TestReadConfig_YAML(t *testing.T) {
@@ -36,8 +34,8 @@ func TestReadConfig_YAML(t *testing.T) {
 	}
 	assert.Equal(t, cfg.Links[0].Filepath, test1filepath)
 	assert.Equal(t, cfg.Links[1].Filepath, test2filepath)
-	assert.Equal(t, cfg.Links[0].Linkpath, yamllinkpath)
-	assert.Equal(t, cfg.Links[1].Linkpath, yamllinkpath)
+	assert.Equal(t, cfg.Links[0].Linkpath, linkpath)
+	assert.Equal(t, cfg.Links[1].Linkpath, linkpath)
 }
 
 func TestReadConfig_TOML(t *testing.T) {
@@ -48,8 +46,8 @@ func TestReadConfig_TOML(t *testing.T) {
 	}
 	assert.Equal(t, cfg.Links[0].Filepath, test1filepath)
 	assert.Equal(t, cfg.Links[1].Filepath, test2filepath)
-	assert.Equal(t, cfg.Links[0].Linkpath, tomllinkpath)
-	assert.Equal(t, cfg.Links[1].Linkpath, tomllinkpath)
+	assert.Equal(t, cfg.Links[0].Linkpath, linkpath)
+	assert.Equal(t, cfg.Links[1].Linkpath, linkpath)
 }
 
 func TestReadConfig_ErrConfigNotFound(t *testing.T) {
