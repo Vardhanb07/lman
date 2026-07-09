@@ -49,3 +49,7 @@ func TestLink_WithDir(t *testing.T) {
 		}
 	})
 }
+
+func TestLink_LinkedFile(t *testing.T) {
+
+}

@@ -3,7 +3,6 @@ module github.com/Vardhanb07/lman
 go 1.26.1
 
 require (
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/urfave/cli/v3 v3.10.1
