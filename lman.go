@@ -29,7 +29,7 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 	return &cli.Command{
 		Name:                   "lman",
 		Usage:                  "manage farms of symbolic links",
-		Version:                "v1.0.2",
+		Version:                "v1.0.3",
 		Writer:                 stdout,
 		ErrWriter:              stderr,
 		Reader:                 stdin,
