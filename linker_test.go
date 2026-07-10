@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -51,13 +52,31 @@ func TestLink_WithDir(t *testing.T) {
 }
 
 func TestLink_LinkedFile(t *testing.T) {
+	test3filepath := "./testdata/files/test3"
+	err := link(test3filepath, testlinkpath)
+	assert.ErrorIs(t, err, nil)
+	_, err = os.Lstat(filepath.Join(testlinkpath, "test3"))
+	assert.ErrorIs(t, err, nil)
 }
 
 func TestUnlink(t *testing.T) {
-}
-
-func TestUnlink_WithDir(t *testing.T) {
+	cPath, err := exec.LookPath("ln")
+	if err != nil {
+		t.Fatal(err)
+	}
+	test4filepath := "./testdata/files/test4"
+	cmd := exec.Command(cPath, "-sf", test4filepath, filepath.Join(linkpath, "test4"))
+	if err := cmd.Run(); err != nil {
+		t.Fatal(err)
+	}
+	err = unlink(test4filepath, linkpath)
+	assert.ErrorIs(t, err, nil)
+	_, err = os.Lstat(filepath.Join(linkpath, "test4"))
+	assert.NotErrorIs(t, err, nil)
 }
 
 func TestUnlink_UnlinkedFile(t *testing.T) {
+	test4filepath := "./testdata/files/test4"
+	err := unlink(test4filepath, linkpath)
+	assert.ErrorIs(t, err, nil)
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -297,7 +298,47 @@ func TestLman_DefaultConfigNotFound(t *testing.T) {
 }
 
 func TestLman_Unlink(t *testing.T) {
+	cPath, err := exec.LookPath("bash")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cmd := exec.Command(cPath, "setup_test_unlink.sh")
+	if err := cmd.Run(); err != nil {
+		t.Fatal(err)
+	}
+	t.Chdir("./test_unlink")
+	lman := main.NewLman(stdout, stderr, stdin)
+	err = lman.Run(context.Background(), []string{"lman", "unlink"})
+	assert.ErrorIs(t, err, nil)
+	_, err = os.Lstat(filepath.Join("links", "test"))
+	assert.NotErrorIs(t, err, nil)
+	t.Chdir("../")
+	t.Cleanup(func() {
+		if err := os.RemoveAll("./test_unlink"); err != nil {
+			t.Fatal(err)
+		}
+	})
 }
 
-func TestLman_UnlinkVerbose(t *testing.T) {
+func TestLman_UnlinkWithConfig(t *testing.T) {
+	cPath, err := exec.LookPath("bash")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cmd := exec.Command(cPath, "setup_test_unlink.sh")
+	if err := cmd.Run(); err != nil {
+		t.Fatal(err)
+	}
+	t.Chdir("./test_unlink")
+	lman := main.NewLman(stdout, stderr, stdin)
+	err = lman.Run(context.Background(), []string{"lman", "unlink", "--config", "lman.config.toml"})
+	assert.ErrorIs(t, err, nil)
+	_, err = os.Lstat(filepath.Join("./links", "test"))
+	assert.NotErrorIs(t, err, nil)
+	t.Chdir("../")
+	t.Cleanup(func() {
+		if err := os.RemoveAll("./test_unlink"); err != nil {
+			t.Fatal(err)
+		}
+	})
 }
