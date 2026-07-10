@@ -51,5 +51,13 @@ func TestLink_WithDir(t *testing.T) {
 }
 
 func TestLink_LinkedFile(t *testing.T) {
+}
 
+func TestUnlink(t *testing.T) {
+}
+
+func TestUnlink_WithDir(t *testing.T) {
+}
+
+func TestUnlink_UnlinkedFile(t *testing.T) {
 }

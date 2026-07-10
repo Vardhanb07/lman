@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -297,52 +296,8 @@ func TestLman_DefaultConfigNotFound(t *testing.T) {
 	assert.ErrorIs(t, err, main.ErrDefaultConfigFileNotFound)
 }
 
-func TestLman_Remove(t *testing.T) {
-	cPath, err := exec.LookPath("bash")
-	if err != nil {
-		t.Fatal(err)
-	}
-	cmd := exec.Command(cPath, "setup_test_remove.sh")
-	if err := cmd.Run(); err != nil {
-		t.Fatal(err)
-	}
-	lman := main.NewLman(stdout, stderr, stdin)
-	t.Chdir("./test/")
-	if err := lman.Run(context.Background(), []string{"lman", "remove"}); err != nil {
-		t.Fatal(err)
-	}
-	_, err = os.Stat("lman")
-	assert.Contains(t, err.Error(), "no such file or directory")
-	_, err = os.Stat("lman.config.toml")
-	assert.Equal(t, err, nil)
-	t.Chdir("../")
-	t.Cleanup(func() {
-		if err := os.RemoveAll("./test/"); err != nil {
-			t.Fatal(err)
-		}
-	})
+func TestLman_Unlink(t *testing.T) {
 }
 
-func TestLman_RemoveVerbose(t *testing.T) {
-	cPath, err := exec.LookPath("bash")
-	if err != nil {
-		t.Fatal(err)
-	}
-	cmd := exec.Command(cPath, "setup_test_remove.sh")
-	if err := cmd.Run(); err != nil {
-		t.Fatal(err)
-	}
-	lman := main.NewLman(stdout, stderr, stdin)
-	t.Chdir("./test/")
-	if err := lman.Run(context.Background(), []string{"lman", "remove", "--verbose"}); err != nil {
-		t.Fatal(err)
-	}
-	out := stdout.String()
-	assert.Contains(t, out, "deleting")
-	t.Chdir("../")
-	t.Cleanup(func() {
-		if err := os.RemoveAll("./test/"); err != nil {
-			t.Fatal(err)
-		}
-	})
+func TestLman_UnlinkVerbose(t *testing.T) {
 }

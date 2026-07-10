@@ -56,24 +56,36 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 		},
 		Commands: []*cli.Command{
 			{
-				Name:    "remove",
-				Aliases: []string{"r"},
-				Usage:   "unlink and delete all links in current folder. Preserves only default config files",
+				Name:    "unlink",
+				Aliases: []string{"u"},
+				Usage:   "unlink all soft links defined in config file",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					verbose := cmd.Bool("verbose")
-					dir, err := os.ReadDir(".")
+					cfgFiles := defaultConfigFiles()
+					wd, err := os.Getwd()
 					if err != nil {
 						return err
 					}
-					cfgFiles := defaultConfigFiles()
-					for _, file := range dir {
-						if !slices.Contains(cfgFiles, file.Name()) {
-							if verbose {
-								fmt.Fprintf(cmd.Writer, "lman: deleting %v", file.Name())
-							}
-							if err := os.RemoveAll(filepath.Join(".", file.Name())); err != nil {
-								return err
-							}
+					var cfgFile string
+					for _, file := range cfgFiles {
+						fstat, err := os.Stat(filepath.Join(wd, file))
+						if os.IsNotExist(err) {
+							continue
+						} else if err != nil {
+							return err
+						}
+						cfgFile = fstat.Name()
+						break
+					}
+					if cfgFile == "" {
+						cfgFile = cmd.String("config")
+						if cfgFile == "" {
+							return ErrDefaultConfigFileNotFound
+						}
+					}
+					cfg, err := readConfig(cfgFile)
+					for _, file := range cfg.Links {
+						if err := unlink(file.Filepath, file.Linkpath); err != nil {
+							return err
 						}
 					}
 					return nil

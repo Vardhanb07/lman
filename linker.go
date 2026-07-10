@@ -13,6 +13,7 @@ var (
 	ErrLinkFilePremissionDenied = errors.New("link file premission denied")
 )
 
+// ignore linked file paths
 func link(path, linkpath string) error {
 	absPath, err := resolve(path)
 	if err != nil {
@@ -43,4 +44,21 @@ func link(path, linkpath string) error {
 		return ErrLinkFailed
 	}
 	return nil
+}
+
+// ignore unlinked file paths
+func unlink(path, linkpath string) error {
+	absPath, err := resolve(path)
+	if err != nil {
+		return err
+	}
+	absLinkPath, err := resolve(linkpath)
+	if err != nil {
+		return err
+	}
+	linkFilePath := filepath.Join(absLinkPath, filepath.Base(absPath))
+	if _, err := os.Lstat(linkFilePath); err != nil {
+		return nil
+	}
+	return os.Remove(linkFilePath)
 }
