@@ -19,6 +19,7 @@ var (
 	stdin         = strings.NewReader("")
 	test1filepath = "./testdata/files/test1"
 	test2filepath = "./testdata/files/test2"
+	test3filepath = "./testdata/files/test3"
 	linkpath      = "./testdata/links"
 )
 
@@ -33,6 +34,50 @@ func TestLman_WithPaths(t *testing.T) {
 	_, err = os.Lstat(filepath.Join(linkpath, filepath.Base(test1filepath)))
 	assert.ErrorIs(t, err, nil)
 	_, err = os.Lstat(filepath.Join(linkpath, filepath.Base(test2filepath)))
+	assert.ErrorIs(t, err, nil)
+	t.Cleanup(func() {
+		if err := os.Remove(filepath.Join(linkpath, filepath.Base(test1filepath))); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Remove(filepath.Join(linkpath, filepath.Base(test2filepath))); err != nil {
+			t.Fatal(err)
+		}
+	})
+}
+
+// this test will fail in other computer
+// change path in lman args to make it pass
+func TestLman_WithAbsolutePaths(t *testing.T) {
+	lman := main.NewLman(stdout, stderr, stdin)
+	testAbsPath := "~/Workspace/github.com/vardhanb07/lman"
+	err := lman.Run(context.Background(), []string{"lman", filepath.Join(testAbsPath, test1filepath), filepath.Join(testAbsPath, test2filepath), filepath.Join(testAbsPath, linkpath)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = os.Lstat(filepath.Join(linkpath, filepath.Base(test1filepath)))
+	assert.ErrorIs(t, err, nil)
+	_, err = os.Lstat(filepath.Join(linkpath, filepath.Base(test2filepath)))
+	assert.ErrorIs(t, err, nil)
+	t.Cleanup(func() {
+		if err := os.Remove(filepath.Join(linkpath, filepath.Base(test1filepath))); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Remove(filepath.Join(linkpath, filepath.Base(test2filepath))); err != nil {
+			t.Fatal(err)
+		}
+	})
+}
+
+// lman should ignore linked files when performing linking of files
+func TestLman_IgnoreLinkedPaths(t *testing.T) {
+	lman := main.NewLman(stdout, stderr, stdin)
+	err := lman.Run(context.Background(), []string{"lman", test1filepath, test2filepath, test3filepath, linkpath})
+	assert.ErrorIs(t, err, nil)
+	_, err = os.Lstat(filepath.Join(linkpath, filepath.Base(test1filepath)))
+	assert.ErrorIs(t, err, nil)
+	_, err = os.Lstat(filepath.Join(linkpath, filepath.Base(test2filepath)))
+	assert.ErrorIs(t, err, nil)
+	_, err = os.Lstat(filepath.Join(linkpath, filepath.Base(test3filepath)))
 	assert.ErrorIs(t, err, nil)
 	t.Cleanup(func() {
 		if err := os.Remove(filepath.Join(linkpath, filepath.Base(test1filepath))); err != nil {

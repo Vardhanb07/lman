@@ -22,7 +22,8 @@ func link(path, linkpath string) error {
 	if err != nil {
 		return err
 	}
-	if _, err := os.Lstat(absLinkPath); err == nil {
+	linkFilePath := filepath.Join(absLinkPath, filepath.Base(absPath))
+	if _, err := os.Lstat(linkFilePath); err == nil {
 		return nil
 	}
 	_, err = os.Stat(absPath)
@@ -35,7 +36,7 @@ func link(path, linkpath string) error {
 		}
 		return err
 	}
-	if err := os.Symlink(absPath, filepath.Join(absLinkPath, filepath.Base(absPath))); err != nil {
+	if err := os.Symlink(absPath, linkFilePath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return ErrLinkNotFound
 		}

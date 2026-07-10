@@ -69,7 +69,7 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 					for _, file := range dir {
 						if !slices.Contains(cfgFiles, file.Name()) {
 							if verbose {
-								fmt.Fprintf(cmd.Writer, "deleting %v", file.Name())
+								fmt.Fprintf(cmd.Writer, "lman: deleting %v", file.Name())
 							}
 							if err := os.RemoveAll(filepath.Join(".", file.Name())); err != nil {
 								return err
@@ -90,20 +90,20 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 				linkfile := paths[len(paths)-1]
 				for _, file := range files {
 					if verbose {
-						fmt.Fprintf(cmd.Writer, "creating link of %v in %v\n", file, linkfile)
+						fmt.Fprintf(cmd.Writer, "lman: creating link of %v in %v\n", file, linkfile)
 					}
 					if err := link(file, linkfile); err != nil {
 						return err
 					}
 				}
-				fmt.Fprintln(cmd.Writer, "links created")
+				fmt.Fprintln(cmd.Writer, "lman: links created")
 			case cfgFile != "":
 				exts := defaultConfigExts()
 				if !slices.Contains(exts, filepath.Ext(cfgFile)) {
 					return ErrUnsupportedConfigFileFormat
 				}
 				if verbose {
-					fmt.Fprintf(cmd.Writer, "reading config file\n")
+					fmt.Fprintf(cmd.Writer, "lman: reading config file\n")
 				}
 				cfg, err := readConfig(cfgFile)
 				if err != nil {
@@ -111,13 +111,13 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 				}
 				for _, links := range cfg.Links {
 					if verbose {
-						fmt.Fprintf(cmd.Writer, "creating link of %v in %v\n", links.Filepath, links.Linkpath)
+						fmt.Fprintf(cmd.Writer, "lman: creating link of %v in %v\n", links.Filepath, links.Linkpath)
 					}
 					if err := link(links.Filepath, links.Linkpath); err != nil {
 						return err
 					}
 				}
-				fmt.Fprintln(cmd.Writer, "links created")
+				fmt.Fprintln(cmd.Writer, "lman: links created")
 			default:
 				cfgFiles := defaultConfigFiles()
 				wd, err := os.Getwd()
@@ -141,13 +141,13 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 				cfg, err := readConfig(cfgFile)
 				for _, links := range cfg.Links {
 					if verbose {
-						fmt.Fprintf(cmd.Writer, "creating link of %v in %v\n", links.Filepath, links.Linkpath)
+						fmt.Fprintf(cmd.Writer, "lman: creating link of %v in %v\n", links.Filepath, links.Linkpath)
 					}
 					if err := link(links.Filepath, links.Linkpath); err != nil {
 						return err
 					}
 				}
-				fmt.Fprintln(cmd.Writer, "links created")
+				fmt.Fprintln(cmd.Writer, "lman: links created")
 			}
 			return nil
 		},
