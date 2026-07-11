@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 mkdir test_unlink
 mkdir test_unlink/links
 touch test_unlink/test
