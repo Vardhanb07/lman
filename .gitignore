@@ -34,3 +34,5 @@ __debug*
 
 # binary
 lman
+# Added by goreleaser init:
+dist/

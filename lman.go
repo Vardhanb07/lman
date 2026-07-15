@@ -17,6 +17,10 @@ var (
 	ErrDefaultConfigFileNotFound   = errors.New("default config file not found, default files are 'lman.config.toml', 'lman.config.yaml', 'lman.config.json'. If you have custom config file provide it with --config, -c flag")
 )
 
+var (
+	version = "dev"
+)
+
 func defaultConfigFiles() []string {
 	return []string{"lman.config.toml", "lman.config.yaml", "lman.config.json"}
 }
@@ -29,7 +33,7 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 	return &cli.Command{
 		Name:                   "lman",
 		Usage:                  "manage farms of symbolic links",
-		Version:                "v1.0.3",
+		Version:                version,
 		Writer:                 stdout,
 		ErrWriter:              stderr,
 		Reader:                 stdin,
