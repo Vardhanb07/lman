@@ -161,7 +161,7 @@ func removeLinks(links []string) error {
 	wg := sync.WaitGroup{}
 
 	go func() {
-		close(linksCh)
+		defer close(linksCh)
 		for _, link := range links {
 			linksCh <- link
 		}
