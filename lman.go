@@ -104,15 +104,7 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 			case len(paths) >= 2:
 				files := paths[:len(paths)-1]
 				linkfile := paths[len(paths)-1]
-				for _, file := range files {
-					if verbose {
-						fmt.Fprintf(cmd.Writer, "lman: creating link of %v in %v\n", file, linkfile)
-					}
-					if err := link(file, linkfile); err != nil {
-						return err
-					}
-				}
-				fmt.Fprintln(cmd.Writer, "lman: links created")
+				return createLinks(files, linkfile, cmd.Writer, verbose)
 			case cfgFile != "":
 				exts := defaultConfigExts()
 				if !slices.Contains(exts, filepath.Ext(cfgFile)) {
@@ -125,15 +117,7 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 				if err != nil {
 					return err
 				}
-				for _, links := range cfg.Links {
-					if verbose {
-						fmt.Fprintf(cmd.Writer, "lman: creating link of %v in %v\n", links.Filepath, links.Linkpath)
-					}
-					if err := link(links.Filepath, links.Linkpath); err != nil {
-						return err
-					}
-				}
-				fmt.Fprintln(cmd.Writer, "lman: links created")
+				return createLinksFromConfig(cfg, cmd.Writer, verbose)
 			default:
 				cfgFiles := defaultConfigFiles()
 				wd, err := os.Getwd()
@@ -155,17 +139,8 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 					return ErrDefaultConfigFileNotFound
 				}
 				cfg, err := readConfig(cfgFile)
-				for _, links := range cfg.Links {
-					if verbose {
-						fmt.Fprintf(cmd.Writer, "lman: creating link of %v in %v\n", links.Filepath, links.Linkpath)
-					}
-					if err := link(links.Filepath, links.Linkpath); err != nil {
-						return err
-					}
-				}
-				fmt.Fprintln(cmd.Writer, "lman: links created")
+				return createLinksFromConfig(cfg, cmd.Writer, verbose)
 			}
-			return nil
 		},
 	}
 }

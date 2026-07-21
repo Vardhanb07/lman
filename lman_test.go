@@ -45,7 +45,7 @@ func TestLman_WithPaths(t *testing.T) {
 	})
 }
 
-// this test will fail in other computer
+// this test will fail in other computers
 // change path in lman args to make it pass
 func TestLman_WithAbsolutePaths(t *testing.T) {
 	lman := main.NewLman(stdout, stderr, stdin)
