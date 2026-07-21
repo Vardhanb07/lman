@@ -63,36 +63,44 @@ func NewLman(stdout, stderr io.Writer, stdin io.Reader) *cli.Command {
 				Name:    "unlink",
 				Aliases: []string{"u"},
 				Usage:   "unlink all soft links defined in config file",
+				Arguments: []cli.Argument{
+					&cli.StringArgs{
+						Name: "links",
+						Min:  0,
+						Max:  -1,
+					},
+				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					cfgFiles := defaultConfigFiles()
-					wd, err := os.Getwd()
-					if err != nil {
-						return err
-					}
-					var cfgFile string
-					for _, file := range cfgFiles {
-						fstat, err := os.Stat(filepath.Join(wd, file))
-						if os.IsNotExist(err) {
-							continue
-						} else if err != nil {
+					links := cmd.StringArgs("links")
+					switch {
+					case len(links) != 0:
+						return removeLinks(links)
+					default:
+						cfgFiles := defaultConfigFiles()
+						wd, err := os.Getwd()
+						if err != nil {
 							return err
 						}
-						cfgFile = fstat.Name()
-						break
-					}
-					if cfgFile == "" {
-						cfgFile = cmd.String("config")
+						var cfgFile string
+						for _, file := range cfgFiles {
+							fstat, err := os.Stat(filepath.Join(wd, file))
+							if os.IsNotExist(err) {
+								continue
+							} else if err != nil {
+								return err
+							}
+							cfgFile = fstat.Name()
+							break
+						}
 						if cfgFile == "" {
-							return ErrDefaultConfigFileNotFound
+							cfgFile = cmd.String("config")
+							if cfgFile == "" {
+								return ErrDefaultConfigFileNotFound
+							}
 						}
+						cfg, err := readConfig(cfgFile)
+						return removeLinksFromConfig(cfg)
 					}
-					cfg, err := readConfig(cfgFile)
-					for _, file := range cfg.Links {
-						if err := unlink(file.Filepath, file.Linkpath); err != nil {
-							return err
-						}
-					}
-					return nil
 				},
 			},
 		},

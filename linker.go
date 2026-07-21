@@ -74,8 +74,6 @@ func createLinks(files []string, linkfile string, stdout io.Writer, verbose bool
 
 	wg := sync.WaitGroup{}
 
-	mu := sync.Mutex{}
-
 	go func() {
 		defer close(filesCh)
 		for _, file := range files {
@@ -87,9 +85,7 @@ func createLinks(files []string, linkfile string, stdout io.Writer, verbose bool
 		wg.Go(func() {
 			for file := range filesCh {
 				if verbose {
-					mu.Lock()
 					fmt.Fprintf(stdout, "lman: creating link of %v in %v\n", file, linkfile)
-					mu.Unlock()
 				}
 				if err := link(file, linkfile); err != nil {
 					errCh <- err
@@ -108,9 +104,7 @@ func createLinks(files []string, linkfile string, stdout io.Writer, verbose bool
 		case err := <-errCh:
 			return err
 		case <-doneCh:
-			mu.Lock()
 			fmt.Fprintln(stdout, "lman: links created")
-			mu.Unlock()
 			return nil
 		}
 	}
@@ -120,8 +114,6 @@ func createLinksFromConfig(cfg *Config, stdout io.Writer, verbose bool) error {
 	errCh := make(chan error)
 	doneCh := make(chan struct{})
 	linksCh := make(chan Link)
-
-	mu := sync.Mutex{}
 
 	wg := sync.WaitGroup{}
 
@@ -136,9 +128,7 @@ func createLinksFromConfig(cfg *Config, stdout io.Writer, verbose bool) error {
 		wg.Go(func() {
 			for l := range linksCh {
 				if verbose {
-					mu.Lock()
 					fmt.Fprintf(stdout, "lman: creating link of %v in %v\n", l.Filepath, l.Linkpath)
-					mu.Unlock()
 				}
 				if err := link(l.Filepath, l.Linkpath); err != nil {
 					errCh <- err
@@ -157,18 +147,93 @@ func createLinksFromConfig(cfg *Config, stdout io.Writer, verbose bool) error {
 		case err := <-errCh:
 			return err
 		case <-doneCh:
-			mu.Lock()
 			fmt.Fprintln(stdout, "lman: links created")
-			mu.Unlock()
 			return nil
 		}
 	}
 }
 
-func removeLinks() error {
-	return nil
+func removeLinks(links []string) error {
+	doneCh := make(chan struct{})
+	errCh := make(chan error)
+	linksCh := make(chan string)
+
+	wg := sync.WaitGroup{}
+
+	go func() {
+		close(linksCh)
+		for _, link := range links {
+			linksCh <- link
+		}
+	}()
+
+	for i := 0; i < runtime.NumCPU(); i++ {
+		wg.Go(func() {
+			for link := range linksCh {
+				resolved, err := resolve(link)
+				if err != nil {
+					errCh <- err
+				}
+				if _, err := os.Lstat(resolved); err != nil {
+					return
+				}
+				if err := os.Remove(resolved); err != nil {
+					errCh <- err
+				}
+			}
+		})
+	}
+
+	go func() {
+		wg.Wait()
+		close(doneCh)
+	}()
+
+	for {
+		select {
+		case err := <-errCh:
+			return err
+		case <-doneCh:
+			return nil
+		}
+	}
 }
 
-func removeLinksFromConfig() error {
-	return nil
+func removeLinksFromConfig(cfg *Config) error {
+	doneCh := make(chan struct{})
+	errCh := make(chan error)
+	linksCh := make(chan Link)
+
+	wg := sync.WaitGroup{}
+
+	go func() {
+		defer close(linksCh)
+		for _, link := range cfg.Links {
+			linksCh <- link
+		}
+	}()
+
+	for i := 0; i < runtime.NumCPU(); i++ {
+		wg.Go(func() {
+			for link := range linksCh {
+				if err := unlink(link.Filepath, link.Linkpath); err != nil {
+					errCh <- err
+				}
+			}
+		})
+	}
+
+	go func() {
+		wg.Wait()
+		close(doneCh)
+	}()
+
+	for {
+		select {
+		case err := <-errCh:
+			return err
+		case <-doneCh:
+			return nil
+		}
+	}
 }
