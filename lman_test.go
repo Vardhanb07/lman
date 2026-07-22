@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -302,7 +303,7 @@ func TestLman_Unlink(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cmd := exec.Command(cPath, "setup_test_unlink.sh")
+	cmd := exec.Command(cPath, "./scripts/setup_test_unlink.sh")
 	if err := cmd.Run(); err != nil {
 		t.Fatal(err)
 	}
@@ -325,7 +326,7 @@ func TestLman_UnlinkWithConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cmd := exec.Command(cPath, "setup_test_unlink.sh")
+	cmd := exec.Command(cPath, "./scripts/setup_test_unlink.sh")
 	if err := cmd.Run(); err != nil {
 		t.Fatal(err)
 	}
@@ -338,6 +339,33 @@ func TestLman_UnlinkWithConfig(t *testing.T) {
 	t.Chdir("../")
 	t.Cleanup(func() {
 		if err := os.RemoveAll("./test_unlink"); err != nil {
+			t.Fatal(err)
+		}
+	})
+}
+
+func TestLman_UnlinkWithLinkPaths(t *testing.T) {
+	cPath, err := exec.LookPath("bash")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cmd := exec.Command(cPath, "./scripts/setup_test_unlink_with_paths.sh")
+	if err := cmd.Run(); err != nil {
+		t.Fatal(err)
+	}
+	path := "./test_unlink_with_paths"
+	t.Chdir(path)
+	lman := main.NewLman(stdout, stderr, stdin)
+	files := []string{"./test1", "./test2", "./test3", "./test4"}
+	err = lman.Run(context.Background(), slices.Insert([]string{"lman", "unlink"}, 2, files...))
+	assert.NoError(t, err)
+	for _, file := range files {
+		_, err = os.Lstat(file)
+		assert.NotErrorIs(t, err, nil)
+	}
+	t.Chdir("../")
+	t.Cleanup(func() {
+		if err := os.RemoveAll(path); err != nil {
 			t.Fatal(err)
 		}
 	})

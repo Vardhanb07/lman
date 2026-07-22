@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 mkdir test_unlink
 mkdir test_unlink/links
